@@ -6,27 +6,36 @@ class Server:
         self.resets = 0
     
     def addPlayer(self, ctx):
-        player = Player(ctx.author.name, 3000)
-        self.players[ctx.author.id] = player
+        if ctx.author.id not in self.players:
+            player = Player(ctx.author.name, 3000)
+            self.players[ctx.author.id] = player
+            return True
+        else:
+            return False
     
     async def getBalance(self, ctx):
         if ctx.author.id not in self.players:
             await ctx.send("You do not have an account! Use the .create command to create an account!")
+            return None
         else:
             player = self.players[ctx.author.id]
-            await ctx.send("You currently have " + str(player.getBalance()) + " chips!")
+            val=player.getBalance()
+            return val
+            # await ctx.send("You currently have " + str(player.getBalance()) + " chips!")
     
     def reset(self):
         for player in self.players:
             player.setBalance(3000)
         self.resets += 1
     
-    async def help(self, ctx):
-        await ctx.send("```List of commands\n\
-.create - Create your profile for the server\n\
-.p - Create and play a game of Texas Hold'Em Poker\n\
-.balance - Check to see how many chips you have\n\
-.top - Check the leaderboards to see who is on top\n\
-.join - Join an already existing Poker game\n\
-(Mods Only) .reset - Reset the balances of everyone in the server```")
-
+    def help(self):
+        
+        description="""**.create** - Create your profile for the server 
+        **.p** - Create and play a game of Texas Hold'Em Poker
+        **.balance** - Check to see how many chips you have
+        **.top** - Check the leaderboards to see who is on top
+        **.join** - Join an already existing Poker game
+        **(Mods Only) .reset** - Reset the balances of everyone in the server"""
+        return description
+        
+        
