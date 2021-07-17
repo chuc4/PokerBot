@@ -1,9 +1,11 @@
+import asyncio
 import discord
 from discord.ext import commands
 import time
 
 from Poker.server import Server
 from Poker.leaderboard import Leaderboard
+
 
 
 intents = discord.Intents.default()
@@ -28,6 +30,7 @@ async def on_ready():
 
 server_bot = Server()
 leaderboard_bot = Leaderboard()
+
 
 @bot.command()
 async def help(ctx):
@@ -72,6 +75,43 @@ async def balance(ctx):
         color=discord.Color.green())
         embed.set_thumbnail(url=ctx.author.avatar_url)
         await ctx.send(embed=embed)
+
+
+
+@bot.command() 
+async def p(ctx, *args):
+    blind = 20
+    startAmt = 1000
+
+    if len(args)==2:
+        blind = args[0]
+        startAmt = args[1]
+    
+    embed = discord.Embed(title="Poker: Texas hold 'em", 
+    description="Starting Balance: "+str(startAmt)+""" <:chips:865450470671646760>
+    Min Bet: """+str(blind)+""" <:chips:865450470671646760> 
+    \nReact to Join!""",
+    color=discord.Color.green())
+    players = []
+
+    message = await ctx.send(embed=embed)
+    await message.add_reaction('✅')
+    await asyncio.sleep(10)
+
+    message = await ctx.fetch_message(message.id)
+
+    for reaction in message.reactions:
+        if reaction.emoji == '✅':
+            async for user in reaction.users():
+                if user != bot.user:
+                    players.append(user.mention)
+    if len(players)<2:
+        await ctx.send("Not enough players")
+    else:
+        await ctx.send(players)
+        
+
+
 
 if __name__ == '__main__':
     main()

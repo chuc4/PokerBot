@@ -1,8 +1,9 @@
 class Card:
-	def __init__(self, suit, val):
+	def __init__(self, suit, val, emote):
 		self.suit = suit
 		self.val = val
+		self.emote = emote
 
 	def show(self):
-		print("{} of {}".format(self.val, self.suit))
+		return self.emote
 
