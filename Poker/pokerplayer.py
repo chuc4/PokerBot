@@ -6,6 +6,7 @@ class PokerPlayer:
         self._gameBalance = 3000
         self._playerAction = 0
         self._inGame = True
+        self._winCondition=[0]
 
     '''Returns the player's username'''
     def username(self):
@@ -59,4 +60,27 @@ class PokerPlayer:
     '''Sets the player's action'''
     def setAction(self, action):
         self._playerAction = action
+    
+    def getWinCond(self):
+        if self._winCondition[0]==10:
+            return "ROYAL FLUSH"
+        elif self._winCondition[0]==9:
+            return "STRAIGHT FLUSH"
+        elif self._winCondition[0]==8:
+            return "FOUR OF A KIND"
+        elif self._winCondition[0]==7:
+            return "FULL HOUSE"
+        elif self._winCondition[0]==6:
+            return "FLUSH"
+        elif self._winCondition[0]==5:
+            return "STRAIGHT"
+        elif self._winCondition[0]==4:
+            return "THREE OF A KIND"
+        elif self._winCondition[0]==3:
+            return "TWO PAIR"
+        elif self._winCondition[0]==2:
+            return "ONE PAIR"
+        elif self._winCondition[0]==1:
+            return "HIGH CARD"
+ 
 
