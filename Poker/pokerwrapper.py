@@ -39,9 +39,11 @@ class PokerWrapper:
 
         for reaction in message.reactions:
             if reaction.emoji == '✅':
+                i=1
                 async for user in reaction.users():
                     if user != bot.user:
                         self.participants.append(PokerPlayer(user.id, i))
+                        i+=1
         if len(self.participants) < 3:
             await ctx.send("Not enough players")
             return False
