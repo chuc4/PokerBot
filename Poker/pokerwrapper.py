@@ -8,23 +8,24 @@ import asyncio
 import discord
 
 class PokerWrapper:
-    def __init__(self):
-        self.gameID
+    def __init__(self, id, bot):
+        self.bot=bot
+        self.gameID=id
         self.gameStarted=False
         self.numPlayers=0
         self.hardBlind=0
         self.currentPot=0
-        self.pokerUI
+        self.pokerUI = Announcer()
         self.gamedeck = Deck()
         self.communityDeck=[]
         self.participants = []
         self.competing=[]
-        self.startingBalance
+        self.startingBalance=1000
     
     async def startGame(self, ctx):
-        await Announcer.initiateGame(ctx)
+        await self.pokerUI.initiateGame(ctx)
 
-    async def setPlayers(self, ctx, bot):
+    async def setPlayers(self, ctx):
         embed = discord.Embed(title="Poker: Texas hold 'em", 
         description="Starting Balance: "+str(self.startingBalance)+""" <:chips:865450470671646760>
         Min Bet: """+str(self.hardBlind)+""" <:chips:865450470671646760> 
@@ -33,7 +34,7 @@ class PokerWrapper:
 
         message = await ctx.send(embed=embed)
         await message.add_reaction('✅')
-        await asyncio.sleep(10)
+        await asyncio.sleep(20)
 
         message = await ctx.fetch_message(message.id)
 
@@ -41,10 +42,10 @@ class PokerWrapper:
             if reaction.emoji == '✅':
                 i=1
                 async for user in reaction.users():
-                    if user != bot.user:
+                    if user != self.bot.user:
                         self.participants.append(PokerPlayer(user.id, i))
                         i+=1
-        if len(self.participants) < 3:
+        if len(self.participants) < 2:
             await ctx.send("Not enough players")
             return False
         else:
@@ -62,10 +63,10 @@ class PokerWrapper:
         def verify(m):
             return m.author == ctx.message.author and representsInt(m.content)
 
-        await Announcer.askBet(ctx)
+        await self.pokerUI.askBet(ctx)
 
         try:
-            msg = await self.client.wait_for('message', check = verify, timeout = 30)
+            msg = await self.bot.wait_for('message', check = verify, timeout = 30)
         except asyncio.TimeoutError:
             await ctx.send(f"Sorry, you took too long to type the blind")
             return False
@@ -73,11 +74,28 @@ class PokerWrapper:
         self.hardBlind = int(msg.content)
 
         #await Announcer.reportBet(ctx, blind)
-        
-    def setBalance(self, balance):
-        self.startingBalance = balance
-        for p in self.participants:
-            p.setInitBalance(balance)
+
+    async def setBalance(self, ctx):
+
+        def representsInt(s):
+            try: 
+                int(s)
+                return True
+            except ValueError:
+                return False
+
+        def verify(m):
+            return m.author == ctx.message.author and representsInt(m.content)
+
+        await self.pokerUI.askBalance(ctx)
+
+        try:
+            msg = await self.bot.wait_for('message', check = verify, timeout = 30)
+        except asyncio.TimeoutError:
+            await ctx.send(f"Sorry, you took too long to type the blind")
+            return False
+
+        self.startingBalance = int(msg.content)
 
     def dealCards(self):
         self.gamedeck.shuffle()

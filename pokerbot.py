@@ -5,6 +5,7 @@ import time
 
 from Poker.server import Server
 from Poker.leaderboard import Leaderboard
+from Poker.pokerwrapper import PokerWrapper
 
 
 
@@ -52,9 +53,16 @@ async def balance(ctx):
     await server_bot.getBalance(ctx)
 
 
-# @bot.command() 
-# async def p(ctx, *args):
-
+@bot.command() 
+async def p(ctx):
+    # print(ctx.message.channel.id)
+    # discord.utils.get(ctx.guild.channels, name=given_name)
+    game = PokerWrapper(ctx.message.channel.id, bot)
+    await game.startGame(ctx)
+    await game.setBalance(ctx)
+    await game.setBlind(ctx)
+    await game.setPlayers(ctx)
+    
         
         
 

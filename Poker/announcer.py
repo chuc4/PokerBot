@@ -1,50 +1,77 @@
-class Announcer():
-    def initiateGame():
-        print("WELCOME TO POKER BOT!")
-        print("If this is your first time with Poker Bot," + 
-        "please type \'.create\'. Please type \'.help\' for the rules" + 
-        "and betting system.")
-    
-    def askBet():
-        print("What is the big blind (minimum bet) amount?")
-    
-    def announceWinner(sorted_players, com_deck, currentPot):
-        #printing community hands
-        print("CURRENT COMMUNITY DECK")
+import random 
+import discord
+import asyncio 
 
-        com_str = ""
-        winner = sorted_players[0]
-        for card in com_deck:
-            com_str += card.show + ", "
-        print(com_str)    
-        print(winner + " has won, receiving " + currentPot)
+class Announcer:
+    async def initiateGame(self, ctx):
+        await ctx.send("WELCOME TO POKER BOT!")
+        await ctx.send("If this is your first time with Poker Bot," + 
+        " please type \'.create\'. Please type \'.help\' for the rules" + 
+        " and betting system.")
+    
+    async def askBet(self, ctx):
+        await ctx.send("What is the big blind (minimum bet) amount?")
+    
+    async def announceWinner(self, ctx, sorted_players, com_deck, currentPot):
+        #sending community hands
+        winner = sorted_players[0].username()
+        self.showCommCards(com_deck)
+        await ctx.send(winner + " has won, receiving " + str(currentPot))
             
-    def askMove(hand):
-        print("Here is your hand:")
-        hand_str = ""
+    async def askMove(self, ctx, hand):
+        await ctx.send("Here is your hand:")
         for card in hand:
-            hand_str += card.str + ", "
-        print(hand_str)
-        print("Would you like to call, raise, or fold?")
+            card.show()
+        await ctx.send("Would you like to call, raise, or fold?")
 
-    def showCards(seat, pkr_players):
-        play_hand = pkr_players[seat].getHand()
-        hand_str = ""
-        print("Your current hand:")
+    async def askBalance(self, ctx):
+        await ctx.send("What should be the starting game balance of all players?")
+
+    ####IMPORTANT: MUST USE asyncio.run(joinTimer) IN ORDER TO CALL THIS FUNCTION.####
+    async def joinTimer(self, ctx):
+        time = 30
+        while time != 0:
+            if time == 5: 
+                await ctx.send("Entries close in 5 seconds.")
+            time -= 1
+            await asyncio.sleep(1)
+    
+    ####IMPORTANT: MUST USE asyncio.run(joinQueue) IN ORDER TO CALL THIS FUNCTION.####
+    async def joinQueue(self, ctx):
+        print("now running timer")
+        await ctx.send("Please click on the green checkmark to join the game!")
+        ##REQUIRES ON_EVENT() IMPLEMENTATION FOR CHECKMARK##
+        await ctx.send("A timer will begin now. You will have 60 seconds to join the game.")
+        await self.joinTimer()
+        await ctx.send("Time is up. The game will be starting shortly...")
+
+    async def showCards(self, ctx, seat, pkr_players):
+        play_hand = pkr_players[seat-1].getHand()
+        await ctx.send("Your current hand:")
         for card in play_hand:
-            hand_str += card.show + ", "
-        print(hand_str)
+            card.show()
 
-    def reportRaise(seat, pkr_players):
-        print(pkr_players[seat].username + " has raised!")
+    async def showCommCards(self, ctx, comm_deck):
+        await ctx.send("CURRENT COMMUNITY DECK")
+        for card in comm_deck:
+            card.show()
+            
+    async def reportRaise(self, ctx, seat, pkr_players):
+        await ctx.send(pkr_players[seat-1].username() + " has raised!")
 
-    def reportCall(seat, pkr_players):
-        print(pkr_players[seat].username + " has called!")
+    async def reportCall(self, ctx, seat, pkr_players):
+        await ctx.send(pkr_players[seat-1].username() + " has called!")
 
-    def reportFold(seat, pkr_players):
-        print(pkr_players[seat].username + " has folded!")
+    async def reportFold(self, ctx, seat, pkr_players):
+        await ctx.send(pkr_players[seat-1].username() + " has folded!")
 
-    def showBalances(pkr_players):
-        print("CURRENT BALANCES:")
+    async def showBalances(self, ctx, pkr_players):
+        await ctx.send("CURRENT BALANCES:")
         for player in pkr_players:
-            print(player.username + ": " + player.getGameBalance())
+            ctx.send(player.username() + ": " + player.getGameBalance())
+
+    async def askLeave(self, ctx):
+        await ctx.send("Thanks for playing Poker with us! Hope you stop by again soon!")
+    
+    async def resetGame(self, ctx):
+        await ctx.send("A new game will be starting soon. Resetting...")
