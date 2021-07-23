@@ -18,8 +18,8 @@ class Announcer:
         self.showCommCards(com_deck)
         await ctx.send(winner + " has won, receiving " + str(currentPot))
             
-    async def askMove(self, ctx, member, hasRaised, bot):
-        if hasRaised:
+    async def askMove(self, ctx, member, hasRaised, blind, bot):
+        if hasRaised or blind:
             await ctx.send("{}, Would you like to call, raise, or fold?".format(member))
         else:
             await ctx.send("{}, Would you like to check, raise, or fold?".format(member))
@@ -62,7 +62,7 @@ class Announcer:
             commCards+="<:back:867926963061411871>"
         await ctx.send(commCards)
     async def reportRaise(self, ctx, name, amount):
-        await ctx.send(name + " has raised to " + amount + "!")
+        await ctx.send(name + " has raised to " + amount + " <:chips:865450470671646760>!")
 
     async def reportCall(self, ctx, name):
         await ctx.send(name + " has called!")
@@ -76,10 +76,20 @@ class Announcer:
     async def showBalances(self, ctx, pkr_players):
         await ctx.send("CURRENT BALANCES:")
         for player in pkr_players:
-            ctx.send(player.username() + ": " + player.getGameBalance())
+            await ctx.send(player.username() + ": " + str(player.getGameBalance())+ " <:chips:865450470671646760>")
+    
+    async def showPlayer(self, ctx, game):
+        embed = discord.Embed(title=game.competing[0].username(), 
+        description="Balance: "+str(game.competing[0].getGameBalance())+" <:chips:865450470671646760>" + """
+        In Pot: """ + str(game.competing[0]._inPot)+""" <:chips:865450470671646760>
+        
+        Current Pot: """+ str(game.currentPot),
+        color=discord.Color.green())
+        embed.set_thumbnail(url=game.competing[0]._user.avatar_url)
+        await ctx.send(embed=embed)
 
     async def askLeave(self, ctx):
         await ctx.send("Thanks for playing Poker with us! Hope you stop by again soon!")
     
     async def resetGame(self, ctx):
-        await ctx.send("A new game will be starting soon. Resetting...")
+        await ctx.send("*\n\n**A NEW GAME HAS STARTED**")

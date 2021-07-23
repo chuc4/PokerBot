@@ -2,6 +2,7 @@ from Poker.leaderboard import Leaderboard
 from Poker.pokerwrapper import PokerWrapper
 from Poker.announcer import Announcer
 from Poker.pokerplayer import PokerPlayer
+from Poker.evalhand import EvaluateHand
 import discord
 from Poker.player import Player
 import asyncio
@@ -76,7 +77,7 @@ class Server:
         return
 
     async def initiateGame(self, ctx, id, bot):
-        new_game = PokerWrapper(id,bot)
+        new_game = PokerWrapper(bot)
         self.games[id] = new_game
         await self.startGame(ctx, new_game, bot)
         boolVal = await new_game.setPlayers(ctx, bot)
@@ -113,41 +114,77 @@ class Server:
             game.competing.append(i)
         await game.dealCards(bot) #needs to send dm's
         # game.setDealer(ctx) #needs to be implemented
-        # game.takeBlinds(ctx) #needs to be implemented
+        await self.takeBlinds(ctx,game) #needs to be implemented
         await self.nextTurns(ctx, game, bot)
-        if len(game.competing) == 1:
-            return
         await self.flop(ctx, game)
-        await self.nextTurns(ctx, game, bot)
-        if len(game.competing) == 1:
-            return
+        if len(game.competing) != 1:
+            await self.nextTurns(ctx, game, bot)
         await self.turn(ctx, game)
-        await self.nextTurns(ctx, game, bot)
-        if len(game.competing) == 1:
-            return
+        if len(game.competing) != 1:
+            await self.nextTurns(ctx, game, bot)
         await self.river(ctx, game)
-        await self.nextTurns(ctx, game, bot)
+        if len(game.competing) != 1:
+            await self.nextTurns(ctx, game, bot)
     
     async def flop(self, ctx, game):
         game.createCommDeck()
         commDeck = game.communityDeck
         await self.announcerUI.showCommCards(ctx, commDeck)
+        for x in game.participants:
+            commAndHand = commDeck + x._hand
+            Eval = EvaluateHand(commAndHand)
+            x._winCondition = Eval.evaluate()
+            await x._user.send(x.getWinCond())
+
+    async def takeBlinds(self, ctx, game):
+        await self.announcerUI.showPlayer(ctx,game)
+        game.competing[0]._inPot=game.smallBlind
+        await ctx.send(game.competing[0].username() + "\nSmall Blind: " + str(game.smallBlind)+" <:chips:865450470671646760>\n")
+        game.currentPot+=game.competing[0]._inPot
+        temp = game.competing.pop(0)
+        game.competing.append(temp)
+
+        await self.announcerUI.showPlayer(ctx,game)
+        game.competing[0]._inPot=game.hardBlind
+        await ctx.send(game.competing[0].username() + "\nBig Blind: " + str(game.hardBlind)+" <:chips:865450470671646760>\n")
+        game.competing[0].setAction("blind")
+        game.currentPot+=game.competing[0]._inPot
+
 
     async def nextTurns(self, ctx, game, bot):
-            pool=[]
-            for i in game.participants:
-                pool.append(i)
+            # pool=[]
+            # for i in game.competing:
+            #     pool.append(i)
 
             while True:
                 pool_actions = []
                 hasRaised = False
+                blind=False
                 i = 0
-                k=0
-                while i < len(pool):
-                    await self.announcerUI.askMove(ctx, pool[i].username(), hasRaised, bot)
+                raiseAmt=0
+                raiseRound=0
+                while True:
+                    calledAction=False
+                    if (game.competing[0].getAction()=="raise" and game.competing[0]._inPot==raiseAmt) or i==len(game.competing):
+                        for x in game.competing:
+                            x.setAction(0)
+                        return
+                    if game.competing[0].getAction()=="blind":
+                        blind=True
+                        raiseAmt=game.competing[0]._inPot
+                        raiseRound=game.competing[0]._inPot
+                        game.competing[0].setAction("called blind")
+                        i=0
+                        temp = game.competing.pop(0)
+                        game.competing.append(temp)
+                        continue
+                    if game.competing[0].getAction()=="called blind":
+                        blind=False
+                    await self.announcerUI.showPlayer(ctx,game)
+                    await self.announcerUI.askMove(ctx, game.competing[0].username(), hasRaised, blind, bot)
                     
                     def verify(m):
-                        return pool[i]._user == m.author
+                        return game.competing[0]._user == m.author
 
                     try:
                         msg = await bot.wait_for('message', check=verify, timeout=30)
@@ -159,43 +196,66 @@ class Server:
                     # if hasRaised == False and format_msg == "call":
                     #     await ctx.send("No one has raised.")
 
-                    pool[i].setAction(format_msg)
-                    pool_actions.append(format_msg)
+                    game.competing[0].setAction(format_msg)
                     if format_msg[0] == "raise":
-                        await self.announcerUI.reportRaise(ctx, pool[i].username(), format_msg[1]) 
+                        await self.announcerUI.reportRaise(ctx, game.competing[0].username(), format_msg[1]) 
                         hasRaised = True
-                        # temp = pool.pop(i)
-                        # pool.append(temp)
-                        for player in pool:
-                            print(player.username())
+                        raiseRound=int(format_msg[1])
+                        game.competing[0]._inPot+=raiseRound
+                        game.currentPot+=raiseRound
+                        raiseAmt=game.competing[0]._inPot
+                        calledAction=True
+                        temp = game.competing.pop(0)
+                        game.competing.append(temp)
+                        i=0
+                        # for player in pool:
+                        #     print(player.username())
                     elif format_msg[0] == "call": 
-                        await self.announcerUI.reportCall(ctx, pool[i].username())
+                        await self.announcerUI.reportCall(ctx, game.competing[0].username())
+                        game.currentPot+=(raiseAmt-game.competing[0]._inPot)
+                        game.competing[0]._inPot=raiseAmt
+                        temp = game.competing.pop(0)
+                        game.competing.append(temp)
+                        calledAction=True
                     elif format_msg[0] == "check":
-                        await self.announcerUI.reportCheck(ctx, pool[i].username())
+                        await self.announcerUI.reportCheck(ctx, game.competing[0].username())
+                        temp = game.competing.pop(0)
+                        game.competing.append(temp)
+                        calledAction=True
                     elif format_msg[0] == "fold":
-                        await self.announcerUI.reportFold(ctx, pool[i].username())
-                        game.playerFold(pool[i].username())
-                        pool.pop(i) 
-                        i -= 1
-                        if len(pool) == 1:
+                        await self.announcerUI.reportFold(ctx, game.competing[0].username())
+                        game.playerFold(game.competing[0].username())
+                        if len(game.competing) == 1:
                             return
                     else:
                         continue 
-                    i += 1
-                    
-                if "raise" not in pool_actions:
-                    break
+                    if calledAction:
+                        i+=1
+
+                
+
+
             
     
     async def turn(self, ctx, game):
         game.addCardtoComm()
         commDeck = game.communityDeck
         await game.pokerUI.showCommCards(ctx, commDeck)
+        for x in game.participants:
+            commAndHand = commDeck + x._hand
+            Eval = EvaluateHand(commAndHand)
+            x._winCondition = Eval.evaluate()
+            await x._user.send(x.getWinCond())
     
     async def river(self, ctx, game):
         game.addCardtoComm()
         commDeck = game.communityDeck
         await game.pokerUI.showCommCards(ctx, commDeck)
+        for x in game.participants:
+            commAndHand = commDeck + x._hand
+            Eval = EvaluateHand(commAndHand)
+            x._winCondition = Eval.evaluate()
+            await x._user.send(x.getWinCond())
     
     async def findWinner(self, ctx, game):
         for x in game.competing:
@@ -203,21 +263,26 @@ class Server:
             await self.announcerUI.showCards(ctx,x._hand)
         winners = game.findWinner() #needs to return a list of winners
         for x in winners:
-            embed = discord.Embed(title="WINNER: "+x._username, description=": " + x.getWinCond(), color=discord.Color.green())
+            embed = discord.Embed(title="WINNER: "+x._username, description= x.getWinCond(), color=discord.Color.green())
             embed.set_image(url=x._user.avatar_url)
-            
             await ctx.send(embed=embed)
+            x._gameBalance+=int(game.currentPot/len(winners))
             
         #announce the winner(s) of the game
 
     async def resetRound(self, ctx, game, bot):
-        await game.pokerUI.askLeave(ctx) #needs to be implemented
+        # await game.pokerUI.askLeave(ctx) #needs to be implemented
         # await self.join(ctx, game, bot)
+        game.resetRound()
+        await self.announcerUI.showBalances(ctx, game.participants)
         await asyncio.sleep(10)
         game.addPlayers()
         game.leaveGame(self.players)
-        game.resetRound()
         if len(game.participants)<2:
-            ctx.send("Not enough players!")
+            for x in game.participants:
+                game.leaveQueue.append(x)
+            game.leaveGame(self.players)
+            await ctx.send("Not enough players!")
             return
+        await self.announcerUI.resetGame(ctx)
         await self.redoGame(ctx, game, bot)

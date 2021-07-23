@@ -15,6 +15,7 @@ class PokerPlayer:
         self._playerAction = 0
         self._inGame = True
         self._winCondition = [0]
+        self._inPot=0
 
     '''DMs a players hand'''
     async def send_hand(self, bot):
@@ -55,7 +56,7 @@ class PokerPlayer:
 
     '''Returns the player's balance'''
     def getGameBalance(self):
-        return self._gameBalance
+        return self._gameBalance-self._inPot
 
     '''Sets the Poker Player's current balance.
        opType represents the type of operation.

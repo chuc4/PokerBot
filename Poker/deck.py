@@ -17,7 +17,7 @@ class Deck:
 		self.cards.append(Card("Spades", '6', "<:6s:865464492351553586>"))
 		self.cards.append(Card("Spades", '7', "<:7s:865464492389302272>"))
 		self.cards.append(Card("Spades", '8', "<:8s:865464492371476480>"))
-		self.cards.append(Card("Spades", '9', "<:9s:865462093192232962>"))
+		self.cards.append(Card("Spades", '9', "<:9s:865464492489572352>"))
 		self.cards.append(Card("Spades", '10', "<:10s:867926783054471218>"))
 		self.cards.append(Card("Spades", 'J', "<:Js:865464042121330698>"))
 		self.cards.append(Card("Spades", 'Q', "<:Qs:865464041820651581>"))

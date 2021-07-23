@@ -6,15 +6,17 @@ from Poker.announcer import Announcer
 from Poker.evalhand import EvaluateHand
 import asyncio
 import discord
+import math
 
 
 class PokerWrapper:
-    def __init__(self, id, bot):
+    def __init__(self, bot):
         self.bot=bot
         self.gameID=0
         self.gameStarted = False
         self.numPlayers = 0
         self.hardBlind = 0
+        self.smallBlind=0
         self.currentPot = 0
         self.pokerUI = Announcer()
         self.gameDeck = Deck()
@@ -89,6 +91,7 @@ class PokerWrapper:
             return False
 
         self.hardBlind = int(msg.content)
+        self.smallBlind = math.floor(self.hardBlind/2)
 
         # await Announcer.reportBet(ctx, blind)
 
@@ -176,6 +179,8 @@ class PokerWrapper:
         self.competing.clear()
         for x in self.participants:
             x._hand = []
+            x._gameBalance=int(x._gameBalance-x._inPot)
+            x._inPot=0
             
 
     async def setDealer(self, ctx):
