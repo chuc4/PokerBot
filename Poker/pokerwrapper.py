@@ -21,6 +21,8 @@ class PokerWrapper:
         self.communityDeck = []
         self.participants = []
         self.competing = []
+        self.joinQueue=[]
+        self.leaveQueue=[]
         self.startingBalance = 0
 
 
@@ -47,13 +49,22 @@ class PokerWrapper:
                     if user != bot.user:
                         newPlayer= PokerPlayer(user.name, i, user)
                         self.participants.append(newPlayer)
-                        self.competing.append(newPlayer)
                         i += 1
         if len(self.participants) < 2:
             await ctx.send("Not enough players")
             return False
         else:
             await ctx.send("Starting game with " + str(len(self.participants)) + " players")
+
+    def addPlayers(self):
+        for newPlayer in self.joinQueue:
+            self.participants.append(newPlayer)
+        self.joinQueue.clear()
+
+    def leaveGame(self):
+        for x in self.leaveQueue:
+            self.participants.remove(x)
+        self.leaveQueue.clear()
 
     async def setBlind(self, ctx, bot):
 
@@ -117,6 +128,11 @@ class PokerWrapper:
                 print(i.username(), "has left the table")
                 self.participants.remove(i)
 
+    def playerFold(self, id):
+        for i in self.competing:
+            if i.username() == id:
+                self.competing.remove(i)
+
     def removePlayer(self, id):
         for i in self.participants:
             if i.username() == id:
@@ -132,14 +148,14 @@ class PokerWrapper:
         self.communityDeck.append(self.gameDeck.drawCard())
 
     def findWinner(self):
+        Eval = EvaluateHand(self.communityDeck)
         for x in self.competing:
             commAndHand = self.communityDeck + x._hand
             Eval = EvaluateHand(commAndHand)
             x._winCondition = Eval.evaluate()
-            print (x._winCondition)
+            print (x._username)
 
         winningCond = max(x._winCondition[0] for x in self.participants)
-        print(winningCond)
         compete = []
         for x in self.participants:
             if x._winCondition[0] == winningCond:
@@ -153,6 +169,12 @@ class PokerWrapper:
         self.communityDeck.clear()
         self.gameDeck = Deck()
         self.numPlayers = len(self.participants)
+        temp = self.participants.pop(0)
+        self.participants.append(temp)
+        self.competing.clear()
+        for x in self.participants:
+            x._hand = []
+            
 
     async def setDealer(self, ctx):
         return

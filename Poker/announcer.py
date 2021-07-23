@@ -18,11 +18,11 @@ class Announcer:
         self.showCommCards(com_deck)
         await ctx.send(winner + " has won, receiving " + str(currentPot))
             
-    async def askMove(self, ctx, hand):
-        await ctx.send("Here is your hand:")
-        for card in hand:
-            card.show()
-        await ctx.send("Would you like to call, raise, or fold?")
+    async def askMove(self, ctx, member, hasRaised, bot):
+        if hasRaised:
+            await ctx.send("{}, Would you like to call, raise, or fold?".format(member))
+        else:
+            await ctx.send("{}, Would you like to check, raise, or fold?".format(member))
 
     async def askBalance(self, ctx):
         await ctx.send("What should be the starting game balance of all players?")
@@ -45,11 +45,11 @@ class Announcer:
         await self.joinTimer()
         await ctx.send("Time is up. The game will be starting shortly...")
 
-    async def showCards(self, ctx, seat, pkr_players):
-        play_hand = pkr_players[seat-1].getHand()
-        await ctx.send("Your current hand:")
-        for card in play_hand:
-            card.show()
+    async def showCards(self, ctx, hand):
+        cards=""
+        for card in hand:
+            cards+=card.show()
+        await ctx.send(cards)
 
     async def showCommCards(self, ctx, comm_deck):
         await ctx.send("**CURRENT COMMUNITY DECK**")
@@ -61,14 +61,17 @@ class Announcer:
         for j in range(5-i):
             commCards+="<:back:867926963061411871>"
         await ctx.send(commCards)
-    async def reportRaise(self, ctx, seat, pkr_players):
-        await ctx.send(pkr_players[seat-1].username() + " has raised!")
+    async def reportRaise(self, ctx, name, amount):
+        await ctx.send(name + " has raised to " + amount + "!")
 
-    async def reportCall(self, ctx, seat, pkr_players):
-        await ctx.send(pkr_players[seat-1].username() + " has called!")
+    async def reportCall(self, ctx, name):
+        await ctx.send(name + " has called!")
 
-    async def reportFold(self, ctx, seat, pkr_players):
-        await ctx.send(pkr_players[seat-1].username() + " has folded!")
+    async def reportFold(self, ctx, name):
+        await ctx.send(name + " has folded!")
+    
+    async def reportCheck(self, ctx, name):
+        await ctx.send(name + " has checked!")
 
     async def showBalances(self, ctx, pkr_players):
         await ctx.send("CURRENT BALANCES:")

@@ -3,7 +3,6 @@ import discord
 from Poker.deck import Deck
 from Poker.card import Card
 
-suits = {"Spades": "♤", "Clubs": "♧", "Diamonds": "♢", "Heart": "♡"}
 
 
 class PokerPlayer:

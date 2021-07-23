@@ -55,22 +55,15 @@ async def balance(ctx):
 
 @bot.command() 
 async def p(ctx):
-    # print(ctx.message.channel.id)
-    # discord.utils.get(ctx.guild.channels, name=given_name)
-    # game = PokerWrapper(ctx.message.channel.id, bot)
-    # await game.startGame(ctx)
-    # boolV= await game.setBalance(ctx)
-    # if boolV==false:
-    #     return
-    # boolV = await game.setBlind(ctx)
-    # if boolV==false:
-    #     return
-    # await game.setPlayers(ctx)
     await server_bot.initiateGame(ctx, ctx.message.channel.id, bot)
     
+@bot.command() 
+async def join(ctx):
+    await server_bot.join(ctx, ctx.message.channel.id)        
         
-        
-
+@bot.command() 
+async def leave(ctx):
+    await server_bot.leave(ctx, ctx.message.channel.id)      
 
 
 if __name__ == '__main__':
