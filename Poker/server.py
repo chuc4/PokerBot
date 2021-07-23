@@ -106,7 +106,7 @@ class Server:
     
     async def join(self, ctx, id):
         if id in self.games:
-            self.games[id].joinQueue.append(PokerPlayer(ctx.message.author.name, 0, ctx.message.author))
+            self.games[id].joinQueue.append(PokerPlayer(ctx.message.author.name, 0, ctx.message.author, self.games.startBalance))
     
     async def startRounds(self, ctx, game, bot):
         for i in game.participants:
@@ -142,6 +142,7 @@ class Server:
                 pool_actions = []
                 hasRaised = False
                 i = 0
+                k=0
                 while i < len(pool):
                     await self.announcerUI.askMove(ctx, pool[i].username(), hasRaised, bot)
                     
@@ -214,7 +215,7 @@ class Server:
         # await self.join(ctx, game, bot)
         await asyncio.sleep(10)
         game.addPlayers()
-        game.leaveGame()
+        game.leaveGame(self.players)
         game.resetRound()
         if len(game.participants)<2:
             ctx.send("Not enough players!")

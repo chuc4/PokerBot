@@ -47,7 +47,7 @@ class PokerWrapper:
                 i = 1
                 async for user in reaction.users():
                     if user != bot.user:
-                        newPlayer= PokerPlayer(user.name, i, user)
+                        newPlayer= PokerPlayer(user.name, i, user, self.startingBalance)
                         self.participants.append(newPlayer)
                         i += 1
         if len(self.participants) < 2:
@@ -61,9 +61,11 @@ class PokerWrapper:
             self.participants.append(newPlayer)
         self.joinQueue.clear()
 
-    def leaveGame(self):
+    def leaveGame(self, players):
         for x in self.leaveQueue:
+            players[x._user.id].balance+= x.getGameBalance()-self.startingBalance
             self.participants.remove(x)
+            
         self.leaveQueue.clear()
 
     async def setBlind(self, ctx, bot):

@@ -6,12 +6,12 @@ from Poker.card import Card
 
 
 class PokerPlayer:
-    def __init__(self, username, seatNumber, user):
+    def __init__(self, username, seatNumber, user, startBalance):
         self._user = user
         self._username = username
         self._seatNumber = seatNumber
         self._hand = []
-        self._gameBalance = 3000
+        self._gameBalance = startBalance
         self._playerAction = 0
         self._inGame = True
         self._winCondition = [0]
