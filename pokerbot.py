@@ -12,7 +12,7 @@ from Poker.pokerwrapper import PokerWrapper
 intents = discord.Intents.default()
 intents.members = True
 description = '''A bot to play Poker with.'''
-bot = commands.Bot(command_prefix='.', description=description)
+bot = commands.Bot(command_prefix='%', description=description)
 bot.remove_command('help')
 
 def main():
@@ -57,11 +57,16 @@ async def balance(ctx):
 async def p(ctx):
     # print(ctx.message.channel.id)
     # discord.utils.get(ctx.guild.channels, name=given_name)
-    game = PokerWrapper(ctx.message.channel.id, bot)
-    await game.startGame(ctx)
-    await game.setBalance(ctx)
-    await game.setBlind(ctx)
-    await game.setPlayers(ctx)
+    # game = PokerWrapper(ctx.message.channel.id, bot)
+    # await game.startGame(ctx)
+    # boolV= await game.setBalance(ctx)
+    # if boolV==false:
+    #     return
+    # boolV = await game.setBlind(ctx)
+    # if boolV==false:
+    #     return
+    # await game.setPlayers(ctx)
+    await server_bot.initiateGame(ctx, ctx.message.channel.id, bot)
     
         
         

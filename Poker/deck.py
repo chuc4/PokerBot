@@ -68,11 +68,9 @@ class Deck:
 
 				
 
-	def show(self,ctx):
-		cards=""
+	def show(self):
 		for c in self.cards:
-			cards+=c.show()
-		return cards
+			c.show()
 
 	def shuffle(self):
 		for i in range(len(self.cards) -1, 0, -1):
