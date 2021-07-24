@@ -134,9 +134,7 @@ class PokerWrapper:
                 self.participants.remove(i)
 
     def playerFold(self, id):
-        for i in self.competing:
-            if i.username() == id:
-                self.competing.remove(i)
+        self.competing.pop(0)
 
     def removePlayer(self, id):
         for i in self.participants:

@@ -125,6 +125,8 @@ class Server:
         await self.river(ctx, game)
         if len(game.competing) != 1:
             await self.nextTurns(ctx, game, bot)
+            await game.pokerUI.showCommCards(ctx, game.communityDeck)
+
     
     async def flop(self, ctx, game):
         game.createCommDeck()
@@ -181,7 +183,7 @@ class Server:
                     if game.competing[0].getAction()=="called blind":
                         blind=False
                     await self.announcerUI.showPlayer(ctx,game)
-                    await self.announcerUI.askMove(ctx, game.competing[0].username(), hasRaised, blind, bot)
+                    await self.announcerUI.askMove(ctx, "<@"+str(game.competing[0]._user.id)+">", hasRaised, blind, bot)
                     
                     def verify(m):
                         return game.competing[0]._user == m.author
@@ -224,7 +226,7 @@ class Server:
                         calledAction=True
                     elif format_msg[0] == "fold":
                         await self.announcerUI.reportFold(ctx, game.competing[0].username())
-                        game.playerFold(game.competing[0].username())
+                        game.competing.pop(0)
                         if len(game.competing) == 1:
                             return
                     else:

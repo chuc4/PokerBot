@@ -12,7 +12,7 @@ from Poker.pokerwrapper import PokerWrapper
 intents = discord.Intents.default()
 intents.members = True
 description = '''A bot to play Poker with.'''
-bot = commands.Bot(command_prefix='%', description=description)
+bot = commands.Bot(command_prefix='.', description=description)
 bot.remove_command('help')
 
 def main():
