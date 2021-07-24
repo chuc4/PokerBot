@@ -17,7 +17,7 @@ bot.remove_command('help')
 
 def main():
     try:
-        bot.run('')
+        bot.run('TOKEN')
     finally:
         print(f'End running at {time.asctime(time.localtime(time.time()))}')
 
