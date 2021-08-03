@@ -158,9 +158,9 @@ class PokerWrapper:
             x._winCondition = Eval.evaluate()
             print (x._username)
 
-        winningCond = max(x._winCondition[0] for x in self.participants)
+        winningCond = max(x._winCondition[0] for x in self.competing)
         compete = []
-        for x in self.participants:
+        for x in self.competing:
             if x._winCondition[0] == winningCond:
                 compete.append(x)
         winners = Eval.winning(compete, winningCond)
